@@ -3,7 +3,6 @@ package datalib
 import (
 	"bufio"
 	"bytes"
-	_ "embed"
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
@@ -20,88 +19,46 @@ import (
 	"github.com/xypwn/filediver/util"
 )
 
-//go:embed generated_arc_settings.dl_bin.gz
-var arcSettingsCompressed []byte
 var arcSettings []byte
 
-//go:embed generated_animation_event_trigger_settings.dl_bin.gz
-var animationEventTriggerSettingsCompressed []byte
 var animationEventTriggerSettings []byte
 
-//go:embed generated_beam_settings.dl_bin.gz
-var beamSettingsCompressed []byte
 var beamSettings []byte
 
-//go:embed generated_damage_settings.dl_bin.gz
-var damageSettingsCompressed []byte
 var damageSettings []byte
 
-//go:embed generated_planet_data.dl_bin.gz
-var planetDataCompressed []byte
 var planetData []byte
 
-//go:embed generated_planet_override_settings.dl_bin.gz
-var planetOverrideSettingsCompressed []byte
 var planetOverrideSettings []byte
 
-//go:embed generated_planet_region_settings.dl_bin.gz
-var planetRegionSettingsCompressed []byte
 var planetRegionSettings []byte
 
-//go:embed generated_planet_types_settings.dl_bin.gz
-var planetTypesSettingsCompressed []byte
 var planetTypesSettings []byte
 
-//go:embed generated_region_settings.dl_bin.gz
-var regionSettingsCompressed []byte
 var regionSettings []byte
 
-//go:embed generated_sky_settings.dl_bin.gz
-var skySettingsCompressed []byte
 var skySettings []byte
 
-//go:embed generated_projectile_settings.dl_bin.gz
-var projectileSettingsCompressed []byte
 var projectileSettings []byte
 
-//go:embed generated_environment_settings.dl_bin.gz
-var environmentSettingsCompressed []byte
 var environmentSettings []byte
 
-//go:embed generated_explosion_settings.dl_bin.gz
-var explosionSettingsCompressed []byte
 var explosionSettings []byte
 
-//go:embed generated_customization_armor_sets.dl_bin.gz
-var customizationArmorSetsCompressed []byte
 var customizationArmorSets []byte
 
-//go:embed generated_customization_passive_bonuses.dl_bin.gz
-var customizationPassiveBonusesCompressed []byte
 var customizationPassiveBonuses []byte
 
-//go:embed generated_unit_customization_settings.dl_bin.gz
-var unitCustomizationSettingsCompressed []byte
 var unitCustomizationSettings []byte
 
-//go:embed generated_weapon_customization_settings.dl_bin.gz
-var weaponCustomizationSettingsCompressed []byte
 var weaponCustomizationSettings []byte
 
-//go:embed generated_entities.dl_bin.gz
-var entitiesCompressed []byte
 var entities []byte
 
-//go:embed generated_entity_deltas.dl_bin.gz
-var entityDeltasCompressed []byte
 var entityDeltas []byte
 
-//go:embed generated_zone_data.dl_bin.gz
-var zoneSettingsCompressed []byte
 var zoneSettings []byte
 
-//go:embed dl_library.dl_typelib.gz
-var typelibCompressed []byte
 var typelib []byte
 
 var DLHashesToStrings map[DLHash]string
@@ -109,6 +66,9 @@ var DLHashesToStrings map[DLHash]string
 func init() {
 	var wg sync.WaitGroup
 	goDecompress := func(dst *[]byte, src []byte) {
+		if len(src) == 0 { // built with -tags noembed: filled by LoadTables
+			return
+		}
 		wg.Add(1)
 		go func() {
 			r, err := gzip.NewReader(bytes.NewReader(src))
