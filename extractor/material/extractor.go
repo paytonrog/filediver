@@ -475,6 +475,17 @@ func WriteDDS(ctx *extractor.Context, doc *gltf.Document, ddsR io.ReadSeeker, po
 
 // Adds a texture to doc. Returns new texture ID if err != nil.
 // postProcess optionally applies image post-processing.
+// NameOnlyTextures: materials reference their textures by name only (a 1x1 placeholder image named after the
+// texture), for callers that read the textures themselves; decoding and re-encoding every texture is most of a
+// unit export's time.
+var NameOnlyTextures bool
+
+var placeholderPNG = func() []byte {
+	var b bytes.Buffer
+	png.Encode(&b, image.NewNRGBA(image.Rect(0, 0, 1, 1)))
+	return b.Bytes()
+}()
+
 func writeTexture(ctx *extractor.Context, doc *gltf.Document, id stingray.Hash, postProcess func(image.Image) (image.Image, error), imgOpts *ImageOptions, suffix string) (uint32, error) {
 	textureId := ctx.OverrideAsset(stingray.NewFileID(id, stingray.Sum("texture")))
 	// Check if we've already added this texture
@@ -482,6 +493,14 @@ func writeTexture(ctx *extractor.Context, doc *gltf.Document, id stingray.Hash, 
 		if doc.Images[*texture.Source].Name == (textureId.Name.String() + suffix) {
 			return uint32(j), nil
 		}
+	}
+	if NameOnlyTextures {
+		imgIdx, err := modeler.WriteImage(doc, textureId.Name.String()+suffix, "image/png", bytes.NewReader(placeholderPNG))
+		if err != nil {
+			return 0, err
+		}
+		doc.Textures = append(doc.Textures, &gltf.Texture{Sampler: gltf.Index(0), Source: gltf.Index(imgIdx)})
+		return uint32(len(doc.Textures) - 1), nil
 	}
 
 	ddsData, err := extr_texture.ExtractDDSData(ctx, textureId)

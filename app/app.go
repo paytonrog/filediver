@@ -479,6 +479,17 @@ func OpenGameDir(ctx context.Context, gameDir string, hashStrings []string, thin
 	} else {
 		return nil, err
 	}
+	return newApp(dataDir, hashesMap, hashStrings, thinhashes, language, true)
+}
+
+// OpenWithDataDir makes an App on a data directory the caller already opened, for exporting files: the hash
+// names, language map and data-library tables as OpenGameDir, without the Wwise names and the per-file metadata
+// (the search filters' data), both of which read through the whole install.
+func OpenWithDataDir(dataDir *stingray.DataDir, hashStrings []string, thinhashes []string, language stingray.ThinHash) (*App, error) {
+	return newApp(dataDir, make(map[stingray.Hash]string), hashStrings, thinhashes, language, false)
+}
+
+func newApp(dataDir *stingray.DataDir, hashesMap map[stingray.Hash]string, hashStrings []string, thinhashes []string, language stingray.ThinHash, withMetadata bool) (*App, error) {
 	for _, h := range hashStrings {
 		hashesMap[stingray.Sum(h)] = h
 	}
@@ -590,6 +601,10 @@ func OpenGameDir(ctx context.Context, gameDir string, hashStrings []string, thin
 	}
 
 	var assetOverrides map[stingray.FileID]stingray.FileID
+	var metadata map[stingray.FileID]FileMetadata
+	if withMetadata {
+		metadata = getFileMetadata(dataDir)
+	}
 
 	return &App{
 		Hashes:             hashesMap,
@@ -607,7 +622,7 @@ func OpenGameDir(ctx context.Context, gameDir string, hashStrings []string, thin
 		DataDir:            dataDir,
 		Language:           language,
 		LanguageMap:        mapping,
-		Metadata:           getFileMetadata(dataDir),
+		Metadata:           metadata,
 		GameBuildInfo:      buildInfo,
 	}, nil
 }
