@@ -70,7 +70,7 @@ func getArcWeaponComponentData() ([]byte, error) {
 	if _, err := binary.Encode(arcWeaponHashData, binary.LittleEndian, arcWeaponHash); err != nil {
 		return nil, err
 	}
-	r := bytes.NewReader(entities[bytes.Index(entities, arcWeaponHashData):])
+	r := bytes.NewReader(entitiesAt(arcWeaponHashData))
 	var header DLInstanceHeader
 	if err := binary.Read(r, binary.LittleEndian, &header); err != nil {
 		return nil, err

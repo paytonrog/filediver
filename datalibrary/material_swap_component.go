@@ -146,7 +146,7 @@ func getMaterialSwapComponentData() ([]byte, error) {
 	if _, err := binary.Encode(materialSwapComponentHashData, binary.LittleEndian, materialSwapComponentHash); err != nil {
 		return nil, err
 	}
-	r := bytes.NewReader(entities[bytes.Index(entities, materialSwapComponentHashData):])
+	r := bytes.NewReader(entitiesAt(materialSwapComponentHashData))
 	var header DLInstanceHeader
 	if err := binary.Read(r, binary.LittleEndian, &header); err != nil {
 		return nil, err

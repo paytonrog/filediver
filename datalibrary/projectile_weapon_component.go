@@ -262,7 +262,7 @@ func getProjectileWeaponComponentData() ([]byte, error) {
 	if _, err := binary.Encode(projectileWeaponHashData, binary.LittleEndian, projectileWeaponHash); err != nil {
 		return nil, err
 	}
-	r := bytes.NewReader(entities[bytes.Index(entities, projectileWeaponHashData):])
+	r := bytes.NewReader(entitiesAt(projectileWeaponHashData))
 	var header DLInstanceHeader
 	if err := binary.Read(r, binary.LittleEndian, &header); err != nil {
 		return nil, err

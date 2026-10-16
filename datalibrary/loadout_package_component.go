@@ -43,7 +43,7 @@ func getLoadoutPackageComponentData() ([]byte, error) {
 	if _, err := binary.Encode(loadoutPackageComponentHashData, binary.LittleEndian, loadoutPackageComponentHash); err != nil {
 		return nil, err
 	}
-	r := bytes.NewReader(entities[bytes.Index(entities, loadoutPackageComponentHashData):])
+	r := bytes.NewReader(entitiesAt(loadoutPackageComponentHashData))
 	var header DLInstanceHeader
 	if err := binary.Read(r, binary.LittleEndian, &header); err != nil {
 		return nil, err

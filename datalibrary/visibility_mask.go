@@ -99,7 +99,7 @@ func getVisibilityMaskComponentData() ([]byte, error) {
 	if _, err := binary.Encode(visibilityMaskHashData, binary.LittleEndian, visibilityMaskHash); err != nil {
 		return nil, err
 	}
-	r := bytes.NewReader(entities[bytes.Index(entities, visibilityMaskHashData):])
+	r := bytes.NewReader(entitiesAt(visibilityMaskHashData))
 	var header DLInstanceHeader
 	if err := binary.Read(r, binary.LittleEndian, &header); err != nil {
 		return nil, err
@@ -188,13 +188,22 @@ func getVisibilityMaskComponentDataForHash(hash stingray.Hash) ([]byte, error) {
 	return componentData, err
 }
 
+var suppliedVisibilityMasks map[stingray.Hash]VisibilityMaskComponent
+
+// SetVisibilityMasks supplies the visibility masks ParseVisibilityMasks returns when the data-library tables are
+// absent (-tags noembed without LoadTables): an app that ships its own copy of the masks it needs.
+func SetVisibilityMasks(m map[stingray.Hash]VisibilityMaskComponent) { suppliedVisibilityMasks = m }
+
 func ParseVisibilityMasks() (map[stingray.Hash]VisibilityMaskComponent, error) {
+	if !HaveTables() && suppliedVisibilityMasks != nil {
+		return suppliedVisibilityMasks, nil
+	}
 	visibilityMaskHash := Sum("VisibilityMaskComponentData")
 	visibilityMaskHashData := make([]byte, 4)
 	if _, err := binary.Encode(visibilityMaskHashData, binary.LittleEndian, visibilityMaskHash); err != nil {
 		return nil, err
 	}
-	r := bytes.NewReader(entities[bytes.Index(entities, visibilityMaskHashData):])
+	r := bytes.NewReader(entitiesAt(visibilityMaskHashData))
 	var header DLInstanceHeader
 	if err := binary.Read(r, binary.LittleEndian, &header); err != nil {
 		return nil, err

@@ -26,7 +26,7 @@ func getBehaviorComponentData() ([]byte, error) {
 	if _, err := binary.Encode(behaviorComponentHashData, binary.LittleEndian, behaviorComponentHash); err != nil {
 		return nil, err
 	}
-	r := bytes.NewReader(entities[bytes.Index(entities, behaviorComponentHashData):])
+	r := bytes.NewReader(entitiesAt(behaviorComponentHashData))
 	var header DLInstanceHeader
 	if err := binary.Read(r, binary.LittleEndian, &header); err != nil {
 		return nil, err

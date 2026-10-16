@@ -27,7 +27,7 @@ func getMeleeAttackComponentData() ([]byte, error) {
 	if _, err := binary.Encode(meleeAttackHashData, binary.LittleEndian, meleeAttackHash); err != nil {
 		return nil, err
 	}
-	r := bytes.NewReader(entities[bytes.Index(entities, meleeAttackHashData):])
+	r := bytes.NewReader(entitiesAt(meleeAttackHashData))
 	var header DLInstanceHeader
 	if err := binary.Read(r, binary.LittleEndian, &header); err != nil {
 		return nil, err

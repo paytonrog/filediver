@@ -46,7 +46,7 @@ func getExplorationRewardComponentData() ([]byte, error) {
 	if _, err := binary.Encode(explorationRewardComponentHashData, binary.LittleEndian, explorationRewardComponentHash); err != nil {
 		return nil, err
 	}
-	r := bytes.NewReader(entities[bytes.Index(entities, explorationRewardComponentHashData):])
+	r := bytes.NewReader(entitiesAt(explorationRewardComponentHashData))
 	var header DLInstanceHeader
 	if err := binary.Read(r, binary.LittleEndian, &header); err != nil {
 		return nil, err

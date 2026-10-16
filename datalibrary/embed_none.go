@@ -4,6 +4,8 @@ package datalib
 
 // Built with -tags noembed: no tables in the binary; LoadTables supplies them.
 
+const embedded = false
+
 var (
 	arcSettingsCompressed                   []byte
 	animationEventTriggerSettingsCompressed []byte

@@ -185,7 +185,7 @@ func getExplosiveComponentData() ([]byte, error) {
 	if _, err := binary.Encode(explosiveComponentHashData, binary.LittleEndian, explosiveComponentHash); err != nil {
 		return nil, err
 	}
-	r := bytes.NewReader(entities[bytes.Index(entities, explosiveComponentHashData):])
+	r := bytes.NewReader(entitiesAt(explosiveComponentHashData))
 	var header DLInstanceHeader
 	if err := binary.Read(r, binary.LittleEndian, &header); err != nil {
 		return nil, err

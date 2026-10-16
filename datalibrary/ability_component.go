@@ -43,7 +43,7 @@ func getAbilityComponentData() ([]byte, error) {
 	if _, err := binary.Encode(abilityHashData, binary.LittleEndian, abilityHash); err != nil {
 		return nil, err
 	}
-	r := bytes.NewReader(entities[bytes.Index(entities, abilityHashData):])
+	r := bytes.NewReader(entitiesAt(abilityHashData))
 	var header DLInstanceHeader
 	if err := binary.Read(r, binary.LittleEndian, &header); err != nil {
 		return nil, err

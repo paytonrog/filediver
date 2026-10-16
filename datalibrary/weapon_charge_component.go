@@ -125,7 +125,7 @@ func getWeaponChargeComponentData() ([]byte, error) {
 	if _, err := binary.Encode(weaponChargeHashData, binary.LittleEndian, weaponChargeHash); err != nil {
 		return nil, err
 	}
-	r := bytes.NewReader(entities[bytes.Index(entities, weaponChargeHashData):])
+	r := bytes.NewReader(entitiesAt(weaponChargeHashData))
 	var header DLInstanceHeader
 	if err := binary.Read(r, binary.LittleEndian, &header); err != nil {
 		return nil, err

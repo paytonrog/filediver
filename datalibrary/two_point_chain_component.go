@@ -113,7 +113,7 @@ func getTwoPointChainComponentData() ([]byte, error) {
 	if _, err := binary.Encode(twoPointChainHashData, binary.LittleEndian, twoPointChainHash); err != nil {
 		return nil, err
 	}
-	r := bytes.NewReader(entities[bytes.Index(entities, twoPointChainHashData):])
+	r := bytes.NewReader(entitiesAt(twoPointChainHashData))
 	var header DLInstanceHeader
 	if err := binary.Read(r, binary.LittleEndian, &header); err != nil {
 		return nil, err

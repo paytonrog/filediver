@@ -335,7 +335,7 @@ func getAvatarComponentData() ([]byte, error) {
 	if _, err := binary.Encode(avatarComponentHashData, binary.LittleEndian, avatarComponentHash); err != nil {
 		return nil, err
 	}
-	r := bytes.NewReader(entities[bytes.Index(entities, avatarComponentHashData):])
+	r := bytes.NewReader(entitiesAt(avatarComponentHashData))
 	var header DLInstanceHeader
 	if err := binary.Read(r, binary.LittleEndian, &header); err != nil {
 		return nil, err

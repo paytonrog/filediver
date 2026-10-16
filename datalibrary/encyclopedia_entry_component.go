@@ -71,7 +71,7 @@ func getEncyclopediaEntryComponentData() ([]byte, error) {
 	if _, err := binary.Encode(encyclopediaEntryComponentHashData, binary.LittleEndian, encyclopediaEntryComponentHash); err != nil {
 		return nil, err
 	}
-	r := bytes.NewReader(entities[bytes.Index(entities, encyclopediaEntryComponentHashData):])
+	r := bytes.NewReader(entitiesAt(encyclopediaEntryComponentHashData))
 	var header DLInstanceHeader
 	if err := binary.Read(r, binary.LittleEndian, &header); err != nil {
 		return nil, err

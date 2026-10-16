@@ -54,7 +54,7 @@ func getWeaponWindUpComponentData() ([]byte, error) {
 	if _, err := binary.Encode(weaponWindUpHashData, binary.LittleEndian, weaponWindUpHash); err != nil {
 		return nil, err
 	}
-	r := bytes.NewReader(entities[bytes.Index(entities, weaponWindUpHashData):])
+	r := bytes.NewReader(entitiesAt(weaponWindUpHashData))
 	var header DLInstanceHeader
 	if err := binary.Read(r, binary.LittleEndian, &header); err != nil {
 		return nil, err

@@ -76,7 +76,7 @@ func getAttachableComponentData() ([]byte, error) {
 	if _, err := binary.Encode(attachableComponentHashData, binary.LittleEndian, attachableComponentHash); err != nil {
 		return nil, err
 	}
-	r := bytes.NewReader(entities[bytes.Index(entities, attachableComponentHashData):])
+	r := bytes.NewReader(entitiesAt(attachableComponentHashData))
 	var header DLInstanceHeader
 	if err := binary.Read(r, binary.LittleEndian, &header); err != nil {
 		return nil, err

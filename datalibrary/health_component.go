@@ -534,7 +534,7 @@ func getHealthComponentData() ([]byte, error) {
 	if _, err := binary.Encode(healthComponentHashData, binary.LittleEndian, healthComponentHash); err != nil {
 		return nil, err
 	}
-	r := bytes.NewReader(entities[bytes.Index(entities, healthComponentHashData):])
+	r := bytes.NewReader(entitiesAt(healthComponentHashData))
 	var header DLInstanceHeader
 	if err := binary.Read(r, binary.LittleEndian, &header); err != nil {
 		return nil, err

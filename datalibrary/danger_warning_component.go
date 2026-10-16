@@ -37,7 +37,7 @@ func getDangerWarningComponentData() ([]byte, error) {
 	if _, err := binary.Encode(dangerWarningComponentHashData, binary.LittleEndian, dangerWarningComponentHash); err != nil {
 		return nil, err
 	}
-	r := bytes.NewReader(entities[bytes.Index(entities, dangerWarningComponentHashData):])
+	r := bytes.NewReader(entitiesAt(dangerWarningComponentHashData))
 	var header DLInstanceHeader
 	if err := binary.Read(r, binary.LittleEndian, &header); err != nil {
 		return nil, err

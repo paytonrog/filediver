@@ -194,7 +194,7 @@ func getSeekingMissileComponentData() ([]byte, error) {
 	if _, err := binary.Encode(seekingMissileComponentHashData, binary.LittleEndian, seekingMissileComponentHash); err != nil {
 		return nil, err
 	}
-	r := bytes.NewReader(entities[bytes.Index(entities, seekingMissileComponentHashData):])
+	r := bytes.NewReader(entitiesAt(seekingMissileComponentHashData))
 	var header DLInstanceHeader
 	if err := binary.Read(r, binary.LittleEndian, &header); err != nil {
 		return nil, err

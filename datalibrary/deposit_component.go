@@ -77,7 +77,7 @@ func getDepositComponentData() ([]byte, error) {
 	if _, err := binary.Encode(depositComponentHashData, binary.LittleEndian, depositComponentHash); err != nil {
 		return nil, err
 	}
-	r := bytes.NewReader(entities[bytes.Index(entities, depositComponentHashData):])
+	r := bytes.NewReader(entitiesAt(depositComponentHashData))
 	var header DLInstanceHeader
 	if err := binary.Read(r, binary.LittleEndian, &header); err != nil {
 		return nil, err

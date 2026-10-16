@@ -68,7 +68,7 @@ func getEntitySettingsHashmapData() ([]byte, error) {
 	if _, err := binary.Encode(entitySettingsHashData, binary.LittleEndian, entitySettingsHash); err != nil {
 		return nil, err
 	}
-	r := bytes.NewReader(entities[bytes.Index(entities, entitySettingsHashData):])
+	r := bytes.NewReader(entitiesAt(entitySettingsHashData))
 	var header DLInstanceHeader
 	if err := binary.Read(r, binary.LittleEndian, &header); err != nil {
 		return nil, err

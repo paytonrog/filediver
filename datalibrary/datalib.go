@@ -809,3 +809,13 @@ func ParseTypeLib(data []byte) (*DLTypeLib, error) {
 	}
 	return parsedTypelib, nil
 }
+
+// entitiesAt: the entities table from the first occurrence of key, or nothing when it isn't there (a component the
+// table lacks, or no tables at all in a -tags noembed build: the parsers then return an error instead of panicking).
+func entitiesAt(key []byte) []byte {
+	i := bytes.Index(entities, key)
+	if i < 0 {
+		return nil
+	}
+	return entities[i:]
+}

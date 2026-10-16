@@ -4,6 +4,8 @@ package datalib
 
 import _ "embed"
 
+const embedded = true
+
 // The data-library tables, embedded (filediver's decrypted copies). Build with -tags noembed to leave them out
 // and supply them at run time with LoadTables.
 

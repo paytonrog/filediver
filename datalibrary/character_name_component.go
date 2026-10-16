@@ -40,7 +40,7 @@ func getCharacterNameComponentData() ([]byte, error) {
 	if _, err := binary.Encode(characterNameComponentHashData, binary.LittleEndian, characterNameComponentHash); err != nil {
 		return nil, err
 	}
-	r := bytes.NewReader(entities[bytes.Index(entities, characterNameComponentHashData):])
+	r := bytes.NewReader(entitiesAt(characterNameComponentHashData))
 	var header DLInstanceHeader
 	if err := binary.Read(r, binary.LittleEndian, &header); err != nil {
 		return nil, err

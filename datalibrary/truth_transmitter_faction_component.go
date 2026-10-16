@@ -66,7 +66,7 @@ func getTruthTransmitterFactionComponentData() ([]byte, error) {
 	if _, err := binary.Encode(truthTransmitterFactionComponentHashData, binary.LittleEndian, truthTransmitterFactionComponentHash); err != nil {
 		return nil, err
 	}
-	r := bytes.NewReader(entities[bytes.Index(entities, truthTransmitterFactionComponentHashData):])
+	r := bytes.NewReader(entitiesAt(truthTransmitterFactionComponentHashData))
 	var header DLInstanceHeader
 	if err := binary.Read(r, binary.LittleEndian, &header); err != nil {
 		return nil, err

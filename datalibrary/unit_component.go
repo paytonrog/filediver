@@ -62,7 +62,7 @@ func getUnitComponentData() ([]byte, error) {
 	if _, err := binary.Encode(unitComponentHashData, binary.LittleEndian, unitComponentHash); err != nil {
 		return nil, err
 	}
-	r := bytes.NewReader(entities[bytes.Index(entities, unitComponentHashData):])
+	r := bytes.NewReader(entitiesAt(unitComponentHashData))
 	var header DLInstanceHeader
 	if err := binary.Read(r, binary.LittleEndian, &header); err != nil {
 		return nil, err

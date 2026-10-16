@@ -518,66 +518,75 @@ func OpenGameDir(ctx context.Context, gameDir string, hashStrings []string, thin
 		return strconv.FormatUint(uint64(stringId), 10)
 	}
 
-	passives, err := datalib.LoadPassiveBonusDefinitions(lookupHash, lookupThinHash, lookupString)
-
-	armorSets, err := datalib.LoadArmorSetDefinitions(mapping, passives)
-	if err != nil {
-		return nil, fmt.Errorf("error loading armor set definitions: %v", err)
-	}
-
-	skinOverrideGroups, err := LoadSkinOverrides(dataDir, mapping)
-	if err != nil {
-		return nil, fmt.Errorf("error loading skin overrides: %v", err)
-	}
-
-	weaponPaintSchemes, err := LoadPaintSchemes(dataDir, mapping)
-	if err != nil {
-		return nil, fmt.Errorf("error loading weapon paint schemes: %v", err)
-	}
-	attachmentSlots, err := LoadAttachmentSlots(dataDir, mapping, lookupHash)
-	if err != nil {
-		return nil, fmt.Errorf("error loading weapon attachment slots: %v", err)
-	}
-
+	var (
+		armorSets            map[stingray.Hash]datalib.ArmorSet
+		skinOverrideGroups   []datalib.UnitSkinOverrideGroup
+		weaponPaintSchemes   []datalib.WeaponCustomizableItem
+		attachmentSlots      map[stingray.Hash]enum.WeaponCustomizationSlot
+		planetMap            = make(map[string]datalib.PlanetData)
+		planetOverridesMap   = make(datalib.PlanetOverridesMap)
+		environmentMap       = make(map[enum.PlanetType]datalib.EnvironmentSettings)
+		planetRegionMappings = make(map[stingray.ThinHash]datalib.GenerationRegionVariantList)
+	)
 	entityVarMapping := LoadEntityVariableMappings(dataDir)
+	// the data-library tables: absent in a -tags noembed build that wasn't given them (datalib.LoadTables)
+	if datalib.HaveTables() {
+		passives, err := datalib.LoadPassiveBonusDefinitions(lookupHash, lookupThinHash, lookupString)
 
-	planetData, err := datalib.LoadPlanetData(lookupHash, lookupThinHash, lookupString)
-	if err != nil {
-		return nil, fmt.Errorf("error loading planet data: %v", err)
-	}
-	planetMap := make(map[string]datalib.PlanetData)
-	caser := getLowerCaser(language)
-	for _, planet := range planetData {
-		if planet.PlanetNameLoc == "" {
-			continue
+		armorSets, err = datalib.LoadArmorSetDefinitions(mapping, passives)
+		if err != nil {
+			return nil, fmt.Errorf("error loading armor set definitions: %v", err)
 		}
-		planetNameLower := caser.String(planet.PlanetNameLoc)
-		planetMap[planetNameLower] = planet
-	}
-	planetOverrides, err := datalib.LoadPlanetOverrideSettings(lookupHash, lookupThinHash, lookupString)
-	if err != nil {
-		return nil, fmt.Errorf("error loading planet overrides data: %v", err)
-	}
-	planetOverridesMap := make(datalib.PlanetOverridesMap)
-	for _, override := range planetOverrides {
-		maps.Copy(planetOverridesMap, override.ToMap())
-	}
 
-	environmentSettings, err := datalib.LoadEnvironmentSettings()
-	if err != nil {
-		return nil, fmt.Errorf("error loading planet overrides data: %v", err)
-	}
-	environmentMap := make(map[enum.PlanetType]datalib.EnvironmentSettings)
-	for _, setting := range environmentSettings {
-		environmentMap[setting.PlanetType] = setting
-	}
-
-	planetRegionMappings := make(map[stingray.ThinHash]datalib.GenerationRegionVariantList)
-	regionGroups, err := datalib.LoadRegionGroups(lookupHash, lookupThinHash, lookupString)
-	if err == nil {
-		for _, group := range regionGroups {
-			maps.Copy(planetRegionMappings, group.RegionsMap())
+		skinOverrideGroups, err = LoadSkinOverrides(dataDir, mapping)
+		if err != nil {
+			return nil, fmt.Errorf("error loading skin overrides: %v", err)
 		}
+
+		weaponPaintSchemes, err = LoadPaintSchemes(dataDir, mapping)
+		if err != nil {
+			return nil, fmt.Errorf("error loading weapon paint schemes: %v", err)
+		}
+		attachmentSlots, err = LoadAttachmentSlots(dataDir, mapping, lookupHash)
+		if err != nil {
+			return nil, fmt.Errorf("error loading weapon attachment slots: %v", err)
+		}
+
+		planetData, err := datalib.LoadPlanetData(lookupHash, lookupThinHash, lookupString)
+		if err != nil {
+			return nil, fmt.Errorf("error loading planet data: %v", err)
+		}
+		caser := getLowerCaser(language)
+		for _, planet := range planetData {
+			if planet.PlanetNameLoc == "" {
+				continue
+			}
+			planetNameLower := caser.String(planet.PlanetNameLoc)
+			planetMap[planetNameLower] = planet
+		}
+		planetOverrides, err := datalib.LoadPlanetOverrideSettings(lookupHash, lookupThinHash, lookupString)
+		if err != nil {
+			return nil, fmt.Errorf("error loading planet overrides data: %v", err)
+		}
+		for _, override := range planetOverrides {
+			maps.Copy(planetOverridesMap, override.ToMap())
+		}
+
+		environmentSettings, err := datalib.LoadEnvironmentSettings()
+		if err != nil {
+			return nil, fmt.Errorf("error loading planet overrides data: %v", err)
+		}
+		for _, setting := range environmentSettings {
+			environmentMap[setting.PlanetType] = setting
+		}
+
+		regionGroups, err := datalib.LoadRegionGroups(lookupHash, lookupThinHash, lookupString)
+		if err == nil {
+			for _, group := range regionGroups {
+				maps.Copy(planetRegionMappings, group.RegionsMap())
+			}
+		}
+
 	}
 
 	var assetOverrides map[stingray.FileID]stingray.FileID

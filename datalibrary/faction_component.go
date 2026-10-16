@@ -82,7 +82,7 @@ func getFactionComponentData() ([]byte, error) {
 	if _, err := binary.Encode(factionComponentHashData, binary.LittleEndian, factionComponentHash); err != nil {
 		return nil, err
 	}
-	r := bytes.NewReader(entities[bytes.Index(entities, factionComponentHashData):])
+	r := bytes.NewReader(entitiesAt(factionComponentHashData))
 	var header DLInstanceHeader
 	if err := binary.Read(r, binary.LittleEndian, &header); err != nil {
 		return nil, err

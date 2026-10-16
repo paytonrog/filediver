@@ -32,7 +32,7 @@ func getLocalUnitComponentData() ([]byte, error) {
 	if _, err := binary.Encode(localUnitComponentHashData, binary.LittleEndian, localUnitComponentHash); err != nil {
 		return nil, err
 	}
-	r := bytes.NewReader(entities[bytes.Index(entities, localUnitComponentHashData):])
+	r := bytes.NewReader(entitiesAt(localUnitComponentHashData))
 	var header DLInstanceHeader
 	if err := binary.Read(r, binary.LittleEndian, &header); err != nil {
 		return nil, err

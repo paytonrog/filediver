@@ -47,7 +47,7 @@ func getTagComponentData() ([]byte, error) {
 	if _, err := binary.Encode(tagComponentHashData, binary.LittleEndian, tagComponentHash); err != nil {
 		return nil, err
 	}
-	r := bytes.NewReader(entities[bytes.Index(entities, tagComponentHashData):])
+	r := bytes.NewReader(entitiesAt(tagComponentHashData))
 	var header DLInstanceHeader
 	if err := binary.Read(r, binary.LittleEndian, &header); err != nil {
 		return nil, err

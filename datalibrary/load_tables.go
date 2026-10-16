@@ -6,6 +6,7 @@ import "fmt"
 // data/game folder ("generated_entities.dl_bin", "dl_library.dl_typelib"). Call it before any Parse / Load function
 // (several cache their first result). Names not given keep the embedded table (none with -tags noembed).
 func LoadTables(files map[string][]byte) error {
+	loaded = len(files) > 0
 	for name, b := range files {
 		switch name {
 		case "generated_arc_settings.dl_bin":
@@ -56,6 +57,13 @@ func LoadTables(files map[string][]byte) error {
 	}
 	return nil
 }
+
+var loaded bool
+
+// HaveTables: the data-library tables are there (embedded, or given to LoadTables). Built with -tags noembed and
+// without LoadTables, everything that needs them is unavailable (App opens without armor sets, skins, paint schemes,
+// planet data; units export without their variants).
+func HaveTables() bool { return embedded || loaded }
 
 // TableNames lists the files LoadTables accepts.
 func TableNames() []string {

@@ -26,7 +26,7 @@ func getHellpodPayloadComponentData() ([]byte, error) {
 	if _, err := binary.Encode(hellpodPayloadComponentHashData, binary.LittleEndian, hellpodPayloadComponentHash); err != nil {
 		return nil, err
 	}
-	r := bytes.NewReader(entities[bytes.Index(entities, hellpodPayloadComponentHashData):])
+	r := bytes.NewReader(entitiesAt(hellpodPayloadComponentHashData))
 	var header DLInstanceHeader
 	if err := binary.Read(r, binary.LittleEndian, &header); err != nil {
 		return nil, err

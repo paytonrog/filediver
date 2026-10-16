@@ -68,7 +68,7 @@ func getAnimationComponentData() ([]byte, error) {
 	if _, err := binary.Encode(animationComponentHashData, binary.LittleEndian, animationComponentHash); err != nil {
 		return nil, err
 	}
-	r := bytes.NewReader(entities[bytes.Index(entities, animationComponentHashData):])
+	r := bytes.NewReader(entitiesAt(animationComponentHashData))
 	var header DLInstanceHeader
 	if err := binary.Read(r, binary.LittleEndian, &header); err != nil {
 		return nil, err

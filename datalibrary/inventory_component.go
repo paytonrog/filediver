@@ -67,7 +67,7 @@ func getInventoryComponentData() ([]byte, error) {
 	if _, err := binary.Encode(inventoryComponentHashData, binary.LittleEndian, inventoryComponentHash); err != nil {
 		return nil, err
 	}
-	r := bytes.NewReader(entities[bytes.Index(entities, inventoryComponentHashData):])
+	r := bytes.NewReader(entitiesAt(inventoryComponentHashData))
 	var header DLInstanceHeader
 	if err := binary.Read(r, binary.LittleEndian, &header); err != nil {
 		return nil, err
