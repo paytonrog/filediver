@@ -1528,6 +1528,11 @@ func AddMaterial(ctx *extractor.Context, mat *material.Material, doc *gltf.Docum
 	for setting, value := range mat.Settings {
 		materialSettingsAndTextures[ctx.LookupThinHash(setting)] = value
 	}
+	// the base material (its shader): tells variants of one shader apart, e.g. the armor shader's two-sided,
+	// cut-out netting (0x8e7efcdf45ac19cf, game build 25988413)
+	if mat.BaseMaterial.Value != 0 {
+		materialSettingsAndTextures["fd_base_material"] = mat.BaseMaterial.String()
+	}
 
 	if _, contains := materialSettingsAndTextures["decal_id"]; contains {
 		fileId := ctx.FileID()
