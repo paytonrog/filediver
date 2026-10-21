@@ -29,6 +29,8 @@ type SimpleLevelGenerationPaletteGroup struct {
 	SunsetGrading           string                  `json:"sunset_grading"`
 	WeatherColorSet         string                  `json:"weather_color_set"`
 	WeatherColorSetInternal datalib.WeatherColorSet `json:"weather_color_set_internal"`
+	PlanetColorSet          string                  `json:"planet_color_set"`
+	PlanetColorSetInternal  datalib.PlanetColorSet  `json:"planet_color_set_internal"`
 }
 
 type SimplePlanetData struct {
@@ -129,6 +131,8 @@ func Dump(a components.HashLookup) {
 				SunsetGrading:           a.LookupHash(planetData.PaletteGroupLowland.SunsetGrading),
 				WeatherColorSet:         a.LookupThinHash(planetData.PaletteGroupLowland.WeatherColorSet),
 				WeatherColorSetInternal: planetData.PaletteGroupLowland.WeatherColorSetInternal,
+				PlanetColorSet:          a.LookupThinHash(planetData.PaletteGroupLowland.PlanetColorSet),
+				PlanetColorSetInternal:  planetData.PaletteGroupLowland.PlanetColorSetInternal,
 			},
 			PaletteGroupHighland: SimpleLevelGenerationPaletteGroup{
 				//Palette:                 a.LookupHash(planetData.PaletteGroupHighland.Palette),
@@ -139,6 +143,8 @@ func Dump(a components.HashLookup) {
 				SunsetGrading:           a.LookupHash(planetData.PaletteGroupHighland.SunsetGrading),
 				WeatherColorSet:         a.LookupThinHash(planetData.PaletteGroupHighland.WeatherColorSet),
 				WeatherColorSetInternal: planetData.PaletteGroupHighland.WeatherColorSetInternal,
+				PlanetColorSet:          a.LookupThinHash(planetData.PaletteGroupHighland.PlanetColorSet),
+				PlanetColorSetInternal:  planetData.PaletteGroupHighland.PlanetColorSetInternal,
 			},
 			ScenarioSettingsLowland:          a.LookupHash(planetData.ScenarioSettingsLowland),
 			ScenarioSettingsHighland:         a.LookupHash(planetData.ScenarioSettingsHighland),

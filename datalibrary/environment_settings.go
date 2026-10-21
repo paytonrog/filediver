@@ -94,13 +94,90 @@ type rawEnvironmentSettings struct {
 	_                          [4]uint8
 }
 
+// rawEnvironmentSettings25988413: EnvironmentSettings since game build 25988413 (576 bytes): no Wwise state string
+// and no wind Wwise events; a new uint32 after the loadout intelligence string id.
+type rawEnvironmentSettings25988413 struct {
+	PlanetType                 enum.PlanetType
+	_                          [4]uint8
+	DebugNameOffset            int64
+	NameLoc                    uint32
+	_                          [4]uint8
+	NameLocStr                 int64
+	LoadoutIntelligenceLoc     uint32
+	Unk31                      uint32 // Name length 31
+	PlanetMaterialId           stingray.Hash
+	ShadingEnvironment         stingray.Hash
+	GradingDay                 stingray.Hash
+	GradingSunset              stingray.Hash
+	GradingNight               stingray.Hash
+	DirtColor                  mgl32.Vec3
+	LayerId                    stingray.ThinHash
+	HologramLightColor         mgl32.Vec3
+	HologramOverlayColor       mgl32.Vec3
+	DropSelectRouteColor       mgl32.Vec3
+	_                          [4]uint8
+	HologramMinimapLut         stingray.Hash
+	PathSettings               [5]rawLevelGenerationPathSettings
+	ResourcePackages           DLArray
+	ResourceOverrideTags       uint32
+	_                          [4]uint8
+	TerrainMaterialPath        stingray.Hash
+	DefaultReverbZoneStrOffset int64
+	UnkThinHash                stingray.ThinHash // Name length 13
+	DefaultAmbienceSoundId     uint32
+	UnkEvent                   uint32 // Name length 32
+	UnkEvent2                  uint32 // Name length 31
+	UnkStr                     int64  // Name length 23
+	UnkFloat                   float32
+	_                          [4]uint8
+}
+
+// readRawEnvironmentSettings reads a setting in the layout of its game build (the 25988413 one in the older struct,
+// Unk31 apart). The debug name follows the struct directly in every setting of both builds, so its offset tells the
+// struct's size: 592 bytes up to 25480438, 576 since 25988413.
+func readRawEnvironmentSettings(r *bytes.Reader) (rawEnvironmentSettings, uint32, error) {
+	base, _ := r.Seek(0, io.SeekCurrent)
+	var head struct {
+		PlanetType      enum.PlanetType
+		_               [4]uint8
+		DebugNameOffset int64
+	}
+	if err := binary.Read(r, binary.LittleEndian, &head); err != nil {
+		return rawEnvironmentSettings{}, 0, err
+	}
+	r.Seek(base, io.SeekStart)
+	var s rawEnvironmentSettings
+	if head.DebugNameOffset >= int64(binary.Size(rawEnvironmentSettings{})) {
+		err := binary.Read(r, binary.LittleEndian, &s)
+		return s, 0, err
+	}
+	var n rawEnvironmentSettings25988413
+	if err := binary.Read(r, binary.LittleEndian, &n); err != nil {
+		return s, 0, err
+	}
+	s = rawEnvironmentSettings{
+		PlanetType: n.PlanetType, DebugNameOffset: n.DebugNameOffset, NameLoc: n.NameLoc, NameLocStr: n.NameLocStr,
+		LoadoutIntelligenceLoc: n.LoadoutIntelligenceLoc, PlanetMaterialId: n.PlanetMaterialId,
+		ShadingEnvironment: n.ShadingEnvironment, GradingDay: n.GradingDay, GradingSunset: n.GradingSunset,
+		GradingNight: n.GradingNight, DirtColor: n.DirtColor, LayerId: n.LayerId,
+		HologramLightColor: n.HologramLightColor, HologramOverlayColor: n.HologramOverlayColor,
+		DropSelectRouteColor: n.DropSelectRouteColor, HologramMinimapLut: n.HologramMinimapLut,
+		PathSettings: n.PathSettings, ResourcePackages: n.ResourcePackages, ResourceOverrideTags: n.ResourceOverrideTags,
+		TerrainMaterialPath: n.TerrainMaterialPath, DefaultReverbZoneStrOffset: n.DefaultReverbZoneStrOffset,
+		UnkThinHash: n.UnkThinHash, DefaultAmbienceSoundId: n.DefaultAmbienceSoundId, UnkEvent: n.UnkEvent,
+		UnkEvent2: n.UnkEvent2, UnkStr: n.UnkStr, UnkFloat: n.UnkFloat,
+	}
+	return s, n.Unk31, nil
+}
+
 type EnvironmentSettings struct {
 	PlanetType             enum.PlanetType
 	DebugName              string
 	NameLoc                uint32
 	NameLocStr             string
 	LoadoutIntelligenceLoc uint32
-	WwiseStateStr          string
+	Unk31                  uint32 // since game build 25988413; name length 31
+	WwiseStateStr          string // up to game build 25480438
 	PlanetMaterialId       stingray.Hash
 	ShadingEnvironment     stingray.Hash
 	GradingDay             stingray.Hash
@@ -119,8 +196,8 @@ type EnvironmentSettings struct {
 	DefaultReverbZoneStr   string
 	UnkThinHash            stingray.ThinHash // name length 13
 	DefaultAmbienceSoundId uint32
-	WindWwiseStartEvent    uint32
-	WindWwiseStopEvent     uint32
+	WindWwiseStartEvent    uint32  // up to game build 25480438
+	WindWwiseStopEvent     uint32  // up to game build 25480438
 	UnkEvent               uint32  // Name length 32
 	UnkEvent2              uint32  // Name length 31
 	UnkStr                 string  // Name length 23
@@ -224,8 +301,8 @@ func LoadEnvironmentSettings() ([]EnvironmentSettings, error) {
 
 		base, _ := r.Seek(0, io.SeekCurrent)
 
-		var rawSettings rawEnvironmentSettings
-		if err := binary.Read(r, binary.LittleEndian, &rawSettings); err != nil {
+		rawSettings, unk31, err := readRawEnvironmentSettings(r)
+		if err != nil {
 			return nil, fmt.Errorf("reading environment settings: %v", err)
 		}
 
@@ -233,6 +310,7 @@ func LoadEnvironmentSettings() ([]EnvironmentSettings, error) {
 			PlanetType:             rawSettings.PlanetType,
 			NameLoc:                rawSettings.NameLoc,
 			LoadoutIntelligenceLoc: rawSettings.LoadoutIntelligenceLoc,
+			Unk31:                  unk31,
 			PlanetMaterialId:       rawSettings.PlanetMaterialId,
 			ShadingEnvironment:     rawSettings.ShadingEnvironment,
 			GradingDay:             rawSettings.GradingDay,
