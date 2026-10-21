@@ -37,6 +37,7 @@ func LoadTables(files map[string][]byte) error {
 			explosionSettings = b
 		case "generated_customization_armor_sets.dl_bin":
 			customizationArmorSets = b
+			pieceStride = 0 // (found again for this table)
 		case "generated_customization_passive_bonuses.dl_bin":
 			customizationPassiveBonuses = b
 		case "generated_unit_customization_settings.dl_bin":

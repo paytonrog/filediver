@@ -235,6 +235,103 @@ type UnitData struct {
 	BaseData          stingray.Hash
 	DecalSheet        stingray.Hash
 	ToneVariations    uint8
+	CamoVariants      []CamoVariant // since game build 25988413; empty for most pieces
+}
+
+// CamoVariant is a piece's material LUT for one camouflage type (game build 25988413+, e.g. the Mimetic armors): the
+// game binds it instead of the piece's MaterialLut when the mission's CamouflageType is Type (2 jungle, 3 desert,
+// 4 arctic, 5 new in 25988413; the SEAF soldiers' camouflage types).
+type CamoVariant struct {
+	Type        uint32
+	MaterialLut stingray.Hash
+}
+
+// pieceStride: the size of one HelldiverCustomizationPieceInfo: 0x60 up to game build 25480438, 0x70 since 25988413
+// (an array of {CamouflageType, material LUT} appended at +0x60). Found once per table: the stride whose pieces all
+// have valid slot / type / weight values (the other one misreads more than a thousand pieces in either build).
+var pieceStride int64
+
+func detectPieceStride(data []byte) int64 {
+	valid := func(stride int64) bool {
+		r := bytes.NewReader(data)
+		var count uint32
+		if binary.Read(r, binary.LittleEndian, &count) != nil {
+			return false
+		}
+		for i := uint32(0); i < count; i++ {
+			var header DLSubdataHeader
+			if binary.Read(r, binary.LittleEndian, &header) != nil {
+				return false
+			}
+			base, _ := r.Seek(0, io.SeekCurrent)
+			var kit HelldiverCustomizationKit
+			if binary.Read(r, binary.LittleEndian, &kit) != nil {
+				return false
+			}
+			bodies := make([]Body, kit.BodyCount)
+			r.Seek(base+kit.BodyArrayAddress, io.SeekStart)
+			if binary.Read(r, binary.LittleEndian, bodies) != nil {
+				return false
+			}
+			for _, body := range bodies {
+				for p := int64(0); p < body.PiecesCount; p++ {
+					var f [3]uint32
+					r.Seek(base+body.PiecesAddress+p*stride+8, io.SeekStart)
+					if binary.Read(r, binary.LittleEndian, &f) != nil || f[0] > 9 || f[1] > 2 || f[2] > 2 {
+						return false
+					}
+				}
+			}
+			r.Seek(base+int64(header.Size), io.SeekStart)
+		}
+		return true
+	}
+	if valid(0x70) {
+		return 0x70
+	}
+	return 0x60
+}
+
+// readPieces reads a body's pieces and, per piece, its camouflage variants (none before build 25988413).
+func readPieces(r *bytes.Reader, base int64, body Body) ([]Piece, [][]CamoVariant, error) {
+	if pieceStride == 0 {
+		pieceStride = detectPieceStride(customizationArmorSets)
+	}
+	pieces := make([]Piece, body.PiecesCount)
+	camos := make([][]CamoVariant, body.PiecesCount)
+	for p := range pieces {
+		if _, err := r.Seek(base+body.PiecesAddress+int64(p)*pieceStride, io.SeekStart); err != nil {
+			return nil, nil, err
+		}
+		if err := binary.Read(r, binary.LittleEndian, &pieces[p]); err != nil {
+			return nil, nil, err
+		}
+		if pieceStride < 0x70 {
+			continue
+		}
+		var arr struct{ Address, Count int64 }
+		if err := binary.Read(r, binary.LittleEndian, &arr); err != nil {
+			return nil, nil, err
+		}
+		if arr.Address < 0 || arr.Count <= 0 {
+			continue
+		}
+		if _, err := r.Seek(base+arr.Address, io.SeekStart); err != nil {
+			return nil, nil, err
+		}
+		raw := make([]struct {
+			Type uint32
+			_    uint32
+			Lut  stingray.Hash
+		}, arr.Count)
+		if err := binary.Read(r, binary.LittleEndian, raw); err != nil {
+			return nil, nil, err
+		}
+		for _, v := range raw {
+			camos[p] = append(camos[p], CamoVariant{Type: v.Type, MaterialLut: v.Lut})
+		}
+	}
+	return pieces, camos, nil
 }
 
 type ArmorSet struct {
@@ -316,11 +413,11 @@ func LoadArmorSetDefinitions(strings map[uint32]string, passives map[uint32]Hell
 			if _, err := r.Seek(base+body.PiecesAddress, io.SeekStart); err != nil {
 				return nil, fmt.Errorf("seeking piece address %x for body %v in item %v: %v", base+body.PiecesAddress, b, i, err)
 			}
-			pieces := make([]Piece, body.PiecesCount)
-			if err := binary.Read(r, binary.LittleEndian, pieces); err != nil {
+			pieces, camos, err := readPieces(r, base, body)
+			if err != nil {
 				return nil, fmt.Errorf("reading %v pieces for body %v in item %v (address was %x): %v", body.PiecesCount, b, i, base+body.PiecesAddress, err)
 			}
-			for _, piece := range pieces {
+			for p, piece := range pieces {
 				unitData := UnitData{
 					Slot:              piece.Slot,
 					Type:              piece.Type,
@@ -335,6 +432,7 @@ func LoadArmorSetDefinitions(strings map[uint32]string, passives map[uint32]Hell
 					BaseData:          piece.BaseData,
 					DecalSheet:        piece.DecalSheet,
 					ToneVariations:    piece.ToneVariations,
+					CamoVariants:      camos[p],
 				}
 				armorSet.UnitMetadata[piece.Path] = unitData
 			}
@@ -413,11 +511,11 @@ func LoadArmorSetArray(strings map[uint32]string, passives map[uint32]HelldiverC
 			if _, err := r.Seek(base+body.PiecesAddress, io.SeekStart); err != nil {
 				return nil, fmt.Errorf("seeking piece address %x for body %v in item %v: %v", base+body.PiecesAddress, b, i, err)
 			}
-			pieces := make([]Piece, body.PiecesCount)
-			if err := binary.Read(r, binary.LittleEndian, pieces); err != nil {
+			pieces, camos, err := readPieces(r, base, body)
+			if err != nil {
 				return nil, fmt.Errorf("reading %v pieces for body %v in item %v (address was %x): %v", body.PiecesCount, b, i, base+body.PiecesAddress, err)
 			}
-			for _, piece := range pieces {
+			for p, piece := range pieces {
 				unitData := UnitData{
 					Slot:              piece.Slot,
 					Type:              piece.Type,
@@ -432,6 +530,7 @@ func LoadArmorSetArray(strings map[uint32]string, passives map[uint32]HelldiverC
 					BaseData:          piece.BaseData,
 					DecalSheet:        piece.DecalSheet,
 					ToneVariations:    piece.ToneVariations,
+					CamoVariants:      camos[p],
 				}
 				armorSet.UnitMetadata[piece.Path] = unitData
 			}

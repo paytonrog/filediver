@@ -23,6 +23,7 @@ type SimplePiece struct {
 	BaseData          string                            `json:"base_data"`
 	DecalSheet        string                            `json:"decal_sheet"`
 	ToneVariations    uint8                             `json:"tone_variations"`
+	CamoLuts          map[string]string                 `json:"camo_luts,omitempty"` // camouflage type -> material LUT
 }
 
 type BodyType struct {
@@ -99,6 +100,7 @@ func Dump(a *app.App) {
 				BaseData:          a.LookupHash(unitData.BaseData),
 				DecalSheet:        a.LookupHash(unitData.DecalSheet),
 				ToneVariations:    unitData.ToneVariations,
+				CamoLuts:          camoLuts(a, unitData.CamoVariants),
 			})
 		}
 		if len(anytype.Pieces) > 0 {
@@ -137,4 +139,16 @@ func Dump(a *app.App) {
 		panic(err)
 	}
 	fmt.Print(output.String())
+}
+
+// camoLuts: a piece's material LUT per camouflage type (game build 25988413+), keyed by the type's number
+func camoLuts(a *app.App, vs []datalib.CamoVariant) map[string]string {
+	if len(vs) == 0 {
+		return nil
+	}
+	out := make(map[string]string, len(vs))
+	for _, v := range vs {
+		out[fmt.Sprint(v.Type)] = a.LookupHash(v.MaterialLut)
+	}
+	return out
 }
